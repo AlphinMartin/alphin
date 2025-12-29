@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Glowing Golden Star - Contest Entry</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #040916; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let width, height, snowflakes = [];
+
+function init() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    // Create snowflakes
+    snowflakes = Array.from({ length: 200 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 2 + 1,
+        v: Math.random() * 1.5 + 0.5,
+        o: Math.random() // opacity for depth
+    }));
+}
+
+function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+    let rot = Math.PI / 2 * 3;
+    let x = cx;
+    let y = cy;
+    let step = Math.PI / spikes;
+
+    // Outer Glow Layer
+    ctx.shadowBlur = 60;
+    ctx.shadowColor = "rgba(255, 223, 0, 0.9)";
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+    }
+    ctx.lineTo(cx, cy - outerRadius);
+    ctx.closePath();
+
+    // Golden Gradient fill
+    let grd = ctx.createRadialGradient(cx, cy, innerRadius * 0.2, cx, cy, outerRadius);
+    grd.addColorStop(0, '#FFFFFF'); // Brilliant white-gold center
+    grd.addColorStop(0.3, '#FFD700'); // Pure gold
+    grd.addColorStop(1, '#DAA520');   // Goldenrod edges
+    
+    ctx.fillStyle = grd;
+    ctx.fill();
+    
+    // Add a subtle border to make it pop
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function animate() {
+    // Dark blue night sky clearing
+    ctx.clearRect(0, 0, width, height);
+
+    // 1. Draw Falling Snow
+    ctx.shadowBlur = 0; // Turn off glow for snow
+    snowflakes.forEach(s => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.o})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        
+        s.y += s.v;
+        if (s.y > height) {
+            s.y = -10;
+            s.x = Math.random() * width;
+        }
+    });
+
+    // 2. Draw The Golden Star (with pulsing animation)
+    const pulse = Math.sin(Date.now() * 0.002) * 15;
+    drawStar(width/2, height/2, 5, 120 + pulse, 60 + (pulse/2));
+
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', init);
+init();
+animate();
+</script>
+</body>
+</html>
